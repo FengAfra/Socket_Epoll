@@ -19,9 +19,12 @@
 
 #include "ostype.h"
 
+
 #define BACK_LOG 64
 
-typedef hash_map<net_handle_t, CBaseSocket*> SocketMap;
+class CBaseSocket;
+
+typedef unordered_map<SOCKET, CBaseSocket*> SocketMap;
 
 
 class CBaseSocket {
@@ -30,6 +33,15 @@ public:
 
 	CBaseSocket();
 	~CBaseSocket();
+
+	SOCKET GetSocket();
+
+public:
+	static void AddBaseSocket(CBaseSocket* pSocket);
+
+	static void RemoveBaseSocket(CBaseSocket* pSocket);
+	
+	static CBaseSocket* FindBaseSocket(SOCKET fd);
 
 
 public:
@@ -49,7 +61,7 @@ public:
 
 private:
 	/*由于监听socket和连接socket都需要设置socketaddr结构体，所以设置private函数，用于绑定sockaddr和ip端口*/
-	void _SetAddr(const char* ip, const uint16_t port, sockaddr_in& addr);
+	void _SetAddr(const char* ip, const uint16_t port, struct sockaddr_in& addr);
 
 	void _SetReuseAddr(SOCKET socketfd);
 	void _SetNonBlock(SOCKET socketfd);
