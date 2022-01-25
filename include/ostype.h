@@ -5,6 +5,8 @@ BaiDu：
 3、unorder_map和hash_map的区别
 4、extern CSLog和单独在.h文件中声明有错误
 5、单例模式
+6、ioctl如何判断socket正常读取
+7、发送消息，并对返回值进行校验，如果发送失败，需要将此socket加入到发送队列，也就是CEventDispatch循环中
 */
 
 
@@ -24,6 +26,8 @@ BaiDu：
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/epoll.h>
+#include <sys/ioctl.h>
+
 
 
 
@@ -39,7 +43,14 @@ typedef int SOCKET;
 
 //typedef std::unordered_map unordered_map_t;
 
-typedef void(*callback_t)(void* callback_data);
+enum NETLIB_MSG {
+	NETLIB_MSG_CONNECT,
+	NETLIB_MSG_WRITE,
+	NETLIB_MSG_READ,
+	NETLIB_MSG_CLOSE,
+};
+
+typedef void(*callback_t)(void* callback_data, NETLIB_MSG msg,  SOCKET fd);
 
 
 extern CSLog g_demolog;

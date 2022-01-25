@@ -20,9 +20,10 @@ public:
 	static CEventDispatch& GetInstance(); 
 
 	void StartDispatch(int       wait_time);
+	void StopDispatch();
 
 	void AddEvent(SOCKET fd);
-
+	void RemoveEvent(SOCKET fd);
 
 protected:
 	CEventDispatch();
@@ -38,6 +39,8 @@ private:
 	static CEventDispatch* 	m_pEventDispatch;
 
 	EPOLL_HANDLE 		m_epfd;
+
+	bool 				m_running;
 	
 };
 

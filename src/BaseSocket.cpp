@@ -14,14 +14,37 @@ CBaseSocket::~CBaseSocket() {
 }
 
 
-SOCKET CBaseSocket::GetSocket(){
+void CBaseSocket::OnRead() {
 
-	return m_socket;
+	if( m_state == SOCKET_STATE_LISTENING) {
+		//如果状态机是SOCKET_STATE_LISTENING，说明响应的是监听socket，此时是接收新连接
+	}
+	else {
+		//如果状态机不是SOCKET_STATE_LISTENING，说明响应的是连接socket，是客户端数据到达
+		u_long avail = 0;
+		int ret = ioctl(m_socket, FIONREAD, &avail);
+		if ((BASESOCKET_ERROR == ret) || (avail == 0)) {
+			m_callback(m_callback_data, NETLIB_MSG_CLOSE, m_socket);
+		}
+		else {
+			m_callback(m_callback_data, NETLIB_MSG_READ, m_socket);
+		}
+	}
+
+}
+
+
+void CBaseSocket::OnWrite() {
+
+}
+
+void CBaseSocket::OnClose() {
 
 }
 
 
 
+/***************************重写socket的函数**********************************/
 int CBaseSocket::Listen(const char* server_ip, const uint16_t server_port, callback_t callback, void* callback_data) {
 
 	m_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -57,7 +80,10 @@ int CBaseSocket::Listen(const char* server_ip, const uint16_t server_port, callb
 		close(m_socket);
 		return NETLIB_ERROR;
 	}
-	
+
+	//socket状态机，其中监听socket只可能处于一个状态，就是SOCKET_STATE_LISTENING
+	m_state = SOCKET_STATE_LISTENING;
+		
 	sLogMessage("CBaseSocket::Listen on ip = %s, port = %u, socket = %d", LOGLEVEL_INFO, server_ip, server_port, m_socket);
 
 	/*
@@ -71,6 +97,36 @@ int CBaseSocket::Listen(const char* server_ip, const uint16_t server_port, callb
 	
 }
 
+int CBaseSocket::Recv(void * buf, int len) {
+	return recv(m_socket, buf, len, 0);
+}
+
+int CBaseSocket::Send(void * buf, int len) {
+	/*
+	1、判断socket的状态，是否是处于链接中的状态
+	if(m_state != SOCKET_STATE_CONNECTED) {
+		return BASESOCKET_ERROR;
+	}
+	2、发送消息，并对返回值进行校验
+		2.1、如果发送成功，皆大欢喜
+		2.2、如果发送失败，需要将此socket加入到发送队列，也就是CEventDispatch循环中
+	*/
+
+	int ret = send(m_socket, buf, len, 0);
+	if(ret < 0){
+		if(errno == EAGAIN || errno == EWOULDBLOCK) {
+			sLogMessage("send failed, errno in EAGAIN,EWOULDBLOCK, socket = %d, buf = '%s'", LOGLEVEL_INFO, m_socket, buf);
+			ret = 0;
+		}
+		else {
+			sLogMessage("send failed, errno is %d,  socket = %d, buf = '%s'", LOGLEVEL_INFO, errno,  m_socket, buf);
+		}
+			
+	}
+	return ret;
+}
+
+/***************************内部函数，private类型的，主要是类内部使用，不对外部开放**********************************/
 void CBaseSocket::_SetAddr(const char * ip, const uint16_t port, struct sockaddr_in & addr) {
 	memset(&addr, 0, sizeof(addr));
 
@@ -92,7 +148,6 @@ void CBaseSocket::_SetAddr(const char * ip, const uint16_t port, struct sockaddr
 	
 
 }
-
 
 void CBaseSocket::_SetReuseAddr(SOCKET socketfd) {
 
@@ -120,7 +175,60 @@ void CBaseSocket::_SetNonBlock(SOCKET socketfd) {
 	}
 }
 
+void CBaseSocket::_AcceptNewSocket() {
 
+	struct sockaddr_in clientaddr;
+	memset(&clientaddr, 0, sizeof(clientaddr));
+	socklen_t client_len = sizeof(clientaddr);
+	SOCKET client_fd = 0;
+	char ip_str[64] = {0};
+	/*
+	BaiDu
+	1、这里为什么不用if，要用while，一直循环
+	*/
+	while ( (client_fd = accept(m_socket, (struct sockaddr *)& clientaddr, &client_len)) != BASESOCKET_ERROR ) {
+		CBaseSocket *client_Socket = new CBaseSocket();
+
+		uint32_t ip = ntohl(clientaddr.sin_addr.s_addr);
+		uint16_t port = ntohs(clientaddr.sin_port);
+
+		//点分十进制法，将IP地址输出
+		snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d", ip >> 24, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
+
+		
+		sLogMessage("AcceptNewSocket, socket=%d from %s:%d\n", LOGLEVEL_INFO, client_fd, ip_str, port);
+
+		//设置正在连接的客户端socket的一系列属性
+		client_Socket->SetSocket(client_fd);
+		client_Socket->SetRemoteAddr(ip_str);
+		client_Socket->SetRemotePort(port);
+		client_Socket->SetCallback(m_callback);
+		client_Socket->SetCallbackData(m_callback_data);
+		client_Socket->SetState(SOCKET_STATE_CONNECTED);
+
+		
+		//设置socket的属性
+		_SetReuseAddr(client_fd);
+		_SetNonBlock(client_fd);
+
+		/*
+		1、将连接的client_fd添加到unorder_map结构体中，使eventdispatch通过fd找到相关的CBaseSocket对象。
+		2、将连接的client_fd添加到CEventDispatch的epoll中，可以监听到fd。
+		*/
+		AddBaseSocket(client_Socket);
+		CEventDispatch::GetInstance().AddEvent(client_fd);
+
+		/*
+		BaiDu：
+		1、连接到新的客户端client之后，需要重新绑定新的回调函数，并设置NETLIB的状态机，当前处于connected状态
+		*/
+		m_callback( m_callback_data , NETLIB_MSG_CONNECT, client_fd);
+
+	}
+
+}
+
+/***************************static 静态函数，主要负责对静态数据unorder_map结构体的处理**********************************/
 void CBaseSocket::AddBaseSocket(CBaseSocket* pSocket){
 	g_socket_map.insert(make_pair(pSocket->GetSocket(), pSocket));
 }

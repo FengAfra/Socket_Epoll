@@ -21,11 +21,23 @@
 
 
 #define BACK_LOG 64
+#define BASESOCKET_ERROR	-1
+#define BASESOCKET_OK		0
 
 class CBaseSocket;
 
 typedef unordered_map<SOCKET, CBaseSocket*> SocketMap;
 
+/*
+状态1：服务端fd处于监听状态，服务充当服务端。
+状态2；客户端fd处于请求连接状态，服务充当客户端
+状态3：客户端fd已经连接成功状态，服务充当服务端
+*/
+enum SOCKET_STATE {
+	SOCKET_STATE_LISTENING,
+	SOCKET_STATE_CONNECTING,
+	SOCKET_STATE_CONNECTED,
+};
 
 class CBaseSocket {
 
@@ -34,7 +46,17 @@ public:
 	CBaseSocket();
 	~CBaseSocket();
 
-	SOCKET GetSocket();
+	SOCKET GetSocket(){return m_socket;}
+	void SetSocket(SOCKET fd) {m_socket = fd;}
+	void SetRemoteAddr(const char* ip) {m_remote_ip = ip;}
+	void SetRemotePort(const uint16_t port) {m_remote_port = port;}
+	void SetCallback(callback_t callback) {m_callback = callback;}
+	void SetCallbackData(void* callback_data) {m_callback_data = callback_data;}
+	void SetState(SOCKET_STATE state) {m_state = state;}
+	
+	void OnRead();
+	void OnWrite();
+	void OnClose();
 
 public:
 	static void AddBaseSocket(CBaseSocket* pSocket);
@@ -51,13 +73,12 @@ public:
 
 	int Connect();
 
-	int Send();
+	int Send(void* buf, int len);
 
-	int Recv();
+	int Recv(void* buf, int len);
 
 	int Close();
 
-	int Accept();
 
 private:
 	/*由于监听socket和连接socket都需要设置socketaddr结构体，所以设置private函数，用于绑定sockaddr和ip端口*/
@@ -66,6 +87,8 @@ private:
 	void _SetReuseAddr(SOCKET socketfd);
 	void _SetNonBlock(SOCKET socketfd);
 
+	void _AcceptNewSocket();
+
 	
 private:
 
@@ -73,6 +96,7 @@ private:
 	SOCKET 		m_socket;
 	callback_t	m_callback;
 	void*		m_callback_data;
+	SOCKET_STATE	m_state;
 		
 
 	//socket分为监听socket和连接socket

@@ -38,11 +38,25 @@ void CEventDispatch::AddEvent(SOCKET fd) {
 }
 
 
+void CEventDispatch::RemoveEvent(SOCKET fd) {
+
+	if(epoll_ctl(m_epfd, EPOLL_CTL_DEL, fd, NULL)) {
+		sLogMessage("epoll_ctl EPOLL_CTL_DEL failed , fd = %d, error = %d", LOGLEVEL_ERROR, fd, errno);
+	}
+}
+
+
 void CEventDispatch::StartDispatch(int wait_time) {
 
 	struct epoll_event event[EPOLL_SIZE] = {0};
 
-	while(1) {
+	//如果已经有在跑的实例，那就需要返回，避免启动多个Dispatch
+	if(m_running)
+		return;
+
+	m_running = true;
+	
+	while(m_running) {
 
 		int nready = epoll_wait(m_epfd, event, EPOLL_SIZE, wait_time);
 
@@ -59,15 +73,17 @@ void CEventDispatch::StartDispatch(int wait_time) {
 			
 			if(event[i].events & EPOLLIN) {
 				sLogMessage("EPOLLIN , fd = %d", LOGLEVEL_INFO, ev_fd );
+				pSocket->OnRead();
 			}
 
 			if(event[i].events & EPOLLOUT) {
 				sLogMessage("EPOLLOUT , fd = %d", LOGLEVEL_INFO, ev_fd );
+				pSocket->OnWrite();
 			}
 
 			if(event[i].events & ( EPOLLHUP | EPOLLERR | EPOLLPRI ) ) {
 				sLogMessage("EPOLLHUP | EPOLLERR | EPOLLPRI , fd = %d", LOGLEVEL_INFO, ev_fd );
-				
+				pSocket->OnClose();
 			}	
 
 		}
@@ -76,5 +92,9 @@ void CEventDispatch::StartDispatch(int wait_time) {
 
 }
 
+
+void CEventDispatch::StopDispatch() {
+	m_running = false;
+}
 
 
