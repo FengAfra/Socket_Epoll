@@ -12,6 +12,7 @@ typedef int EPOLL_HANDLE;
 
 
 //是reactor的触发器，epoll相关的函数都在此调用
+//需要添加定时器，定时的向已有的fd中发送心跳包，确定fd是否存活
 class CEventDispatch {
 
 public:
@@ -24,6 +25,8 @@ public:
 
 	void AddEvent(SOCKET fd);
 	void RemoveEvent(SOCKET fd);
+
+	//void AddTimer
 
 protected:
 	CEventDispatch();

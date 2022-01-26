@@ -45,6 +45,7 @@ int netlib_bind(SOCKET fd, NETLIB_OPT opt, void* data) {
 		sLogMessage("opt is error, socket=%d\n", LOGLEVEL_ERROR, fd);
 		return NETLIB_ERROR;
 	}
+	pSocket->RemoveRef();
 	return NETLIB_OK;
 }
 
@@ -64,6 +65,20 @@ int netlib_listen(const char* server_ip, const uint16_t server_port, callback_t 
 	return NETLIB_OK;
 }
 
+SOCKET netlib_connect(const char * ip, uint16_t port, callback_t callback, void * callback_data) {
+
+	CBaseSocket *pSocket = new CBaseSocket();
+	if(!pSocket)
+		return NETLIB_ERROR;
+
+	SOCKET fd = pSocket->Connect(ip, port, callback, callback_data);
+	if(NETLIB_ERROR == fd) {
+		delete pSocket;
+	}
+	
+	return fd;
+}
+
 int netlib_recv(SOCKET fd, void * recvBuf, int len) {
 
 	CBaseSocket* pSocket = CBaseSocket::FindBaseSocket(fd);
@@ -73,6 +88,7 @@ int netlib_recv(SOCKET fd, void * recvBuf, int len) {
 	}
 
 	int ret = pSocket->Recv(recvBuf, len);
+	pSocket->RemoveRef();
 	return ret;
 }
 
@@ -85,7 +101,23 @@ int netlib_send(SOCKET fd, void * sendbuf, int len) {
 	}
 
 	int ret = pSocket->Send(sendbuf, len);
-	
+	pSocket->RemoveRef();
 	return ret;
 }
+
+
+int netlib_close(SOCKET fd) {
+
+	CBaseSocket* pSocket = CBaseSocket::FindBaseSocket(fd);
+	if(!pSocket){
+		sLogMessage("FindBaseSocket, socket=%d from map\n", LOGLEVEL_ERROR, fd);
+		return NETLIB_ERROR;
+	}
+
+	int ret = pSocket->Close();
+
+	pSocket->RemoveRef();
+	return ret;
+}
+
 

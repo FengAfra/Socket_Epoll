@@ -85,7 +85,7 @@ void CEventDispatch::StartDispatch(int wait_time) {
 				sLogMessage("EPOLLHUP | EPOLLERR | EPOLLPRI , fd = %d", LOGLEVEL_INFO, ev_fd );
 				pSocket->OnClose();
 			}	
-
+			pSocket->RemoveRef();
 		}
 	
 	}

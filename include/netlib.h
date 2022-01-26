@@ -19,9 +19,13 @@ int netlib_bind(SOCKET fd, NETLIB_OPT opt, void* data);
 
 int netlib_listen(const char* server_ip, const uint16_t server_port, callback_t callback, void* callback_data);
 
+SOCKET netlib_connect(const char* ip, uint16_t port, callback_t callback, void* callback_data);
+
 int netlib_recv(SOCKET fd, void* recvBuf, int len);
 
 int netlib_send(SOCKET fd, void* sendbuf, int len);
+
+int netlib_close(SOCKET fd);
 
 #endif
 

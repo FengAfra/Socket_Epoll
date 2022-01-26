@@ -18,6 +18,7 @@
 #define _BASE_SOCKET_H_
 
 #include "ostype.h"
+#include "util.h"
 
 
 #define BACK_LOG 64
@@ -37,9 +38,10 @@ enum SOCKET_STATE {
 	SOCKET_STATE_LISTENING,
 	SOCKET_STATE_CONNECTING,
 	SOCKET_STATE_CONNECTED,
+	SOCKET_STATE_CLOSING,
 };
 
-class CBaseSocket {
+class CBaseSocket : public CRefObject {
 
 public:
 
@@ -71,7 +73,7 @@ public:
 	/*重写listen函数，主要实现绑定IP端口和回调函数*/
 	int Listen(const char* server_ip, const uint16_t server_port, callback_t callback, void* callback_data);
 
-	int Connect();
+	SOCKET Connect(const char* remote_ip, const uint16_t remote_port, callback_t callback, void * callback_data);
 
 	int Send(void* buf, int len);
 

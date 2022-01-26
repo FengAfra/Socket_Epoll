@@ -38,10 +38,11 @@ void CBaseSocket::OnWrite() {
 
 }
 
+
 void CBaseSocket::OnClose() {
-
+	m_state = SOCKET_STATE_CLOSING;
+	m_callback(m_callback_data, NETLIB_MSG_CLOSE, m_socket);
 }
-
 
 
 /***************************重写socket的函数**********************************/
@@ -97,6 +98,48 @@ int CBaseSocket::Listen(const char* server_ip, const uint16_t server_port, callb
 	
 }
 
+SOCKET CBaseSocket::Connect(const char * remote_ip, const uint16_t remote_port, callback_t callback, void * callback_data) {
+
+	m_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if(!m_socket)
+		return NETLIB_ERROR;
+
+
+	m_remote_ip = remote_ip;
+	m_remote_port = remote_port;
+	m_callback = callback;
+	m_callback_data = callback_data;
+
+	struct sockaddr_in remote_addr;
+	_SetAddr(remote_ip, remote_port, remote_addr);
+
+	//bind函数，将sockaddr结构体与socket绑定，如果失败，释放socket
+	int ret = connect(m_socket, (const struct sockaddr*) &remote_addr, sizeof(remote_addr));
+	if(ret) {
+		sLogMessage("bind failed, ip = %s, port = %u, error = %d", LOGLEVEL_ERROR, remote_ip, remote_port, errno);
+		close(m_socket);
+		return NETLIB_ERROR;
+	}
+
+	//设置socket的属性
+	_SetReuseAddr(m_socket);
+	_SetNonBlock(m_socket);
+
+	//socket状态机，其中请求连接socket当前处于此状态，就是SOCKET_STATE_CONNECTING
+	m_state = SOCKET_STATE_CONNECTING;
+		
+	sLogMessage("CBaseSocket::Listen on ip = %s, port = %u, socket = %d", LOGLEVEL_INFO, remote_ip, remote_port, m_socket);
+
+	/*
+	1、将当前fd添加到unorder_map结构体中，使eventdispatch通过fd找到相关的CBaseSocket对象。
+	2、将当前fd添加到CEventDispatch的epoll中，可以监听到fd。
+	*/
+	AddBaseSocket(this);
+	CEventDispatch::GetInstance().AddEvent(m_socket);
+	
+	return m_socket;
+}
+
 int CBaseSocket::Recv(void * buf, int len) {
 	return recv(m_socket, buf, len, 0);
 }
@@ -124,6 +167,18 @@ int CBaseSocket::Send(void * buf, int len) {
 			
 	}
 	return ret;
+}
+
+/*
+1、从eventdispatch循环中将此fd删除，避免多余的fd在epoll中
+2、从g_socket_map容器中删除这个fd。可以不用使用这个fd
+*/
+int CBaseSocket::Close() {
+	CEventDispatch::GetInstance().RemoveEvent(m_socket);
+	RemoveBaseSocket(this);
+	close(m_socket);
+	RemoveRef();
+	return BASESOCKET_OK;
 }
 
 /***************************内部函数，private类型的，主要是类内部使用，不对外部开放**********************************/
@@ -245,7 +300,7 @@ CBaseSocket* CBaseSocket::FindBaseSocket(SOCKET fd) {
 	auto iter = g_socket_map.find(fd);
 	if(iter !=  g_socket_map.end()) {
 		pSocket = iter->second;
-		//pSocket->AddRef();
+		pSocket->AddRef();
 	}
 
 	return pSocket;

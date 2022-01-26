@@ -9,7 +9,13 @@ BaiDu：
 7、发送消息，并对返回值进行校验，如果发送失败，需要将此socket加入到发送队列，也就是CEventDispatch循环中
 */
 
-
+/*
+切记：
+1、有两个map。且都是static类型的，是线程安全的。
+	1.1、第一个为Basesocket的，存放<socket, CBaseSocket*>，通过fd来关联CBaseSocket类对象
+	1.2、第二个为前台业务的，存放<socket, CImConn>。通过fd来关联需要处理的对象
+		1.2.1、感觉有替代的方法，使用函数绑定，将函数和相关的commondid绑定即可。待定
+*/
 
 #ifndef _OSTYPE_H_
 #define _OSTYPE_H_
