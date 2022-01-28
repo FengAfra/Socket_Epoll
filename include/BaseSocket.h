@@ -48,13 +48,63 @@ public:
 	CBaseSocket();
 	~CBaseSocket();
 
+	/*********************************
+	 * 函数：GetSocket
+	 * 功能：获取对象CBaseSocket所含有的socket文件描述符
+	 * 参数：
+	 * 返回值：
+	 *		SOCKET：socket文件描述符
+	**********************************/
 	SOCKET GetSocket(){return m_socket;}
+	/*********************************
+	 * 函数：SetSocket
+	 * 功能：设置对象CBaseSocket所含有的socket文件描述符
+	 * 参数：
+	 *		SOCKET fd：socket描述符
+	 * 返回值：
+	**********************************/
 	void SetSocket(SOCKET fd) {m_socket = fd;}
+	/*********************************
+	 * 函数：SetRemoteAddr
+	 * 功能：设置对象CBaseSocket中所要连接的socket的地址
+	 * 参数：
+	 *		const char* ip：远端socket的IP地址
+	 * 返回值：
+	**********************************/
 	void SetRemoteAddr(const char* ip) {m_remote_ip = ip;}
+	/*********************************
+	 * 函数：SetRemotePort
+	 * 功能：设置对象CBaseSocket中所要连接的socket的端口
+	 * 参数：
+	 *		const uint16_t port：远端socket的监听端口
+	 * 返回值：
+	**********************************/
 	void SetRemotePort(const uint16_t port) {m_remote_port = port;}
+	/*********************************
+	 * 函数：SetCallback
+	 * 功能：设置对象CBaseSocket中socket所需要做的回调函数
+	 * 参数：
+	 *		callback_t callback：回调函数，类型是callback_t
+	 * 返回值：
+	**********************************/
 	void SetCallback(callback_t callback) {m_callback = callback;}
+	/*********************************
+	 * 函数：SetCallbackData
+	 * 功能：设置对象CBaseSocket中回调函数的参数
+	 * 参数：
+	 *		void* callback_data：回调函数的参数
+	 * 返回值：
+	**********************************/
 	void SetCallbackData(void* callback_data) {m_callback_data = callback_data;}
+	/*********************************
+	 * 函数：SetState
+	 * 功能：设置对象CBaseSocket中socket的状态，参看SOCKET_STATE结构体
+	 * 参数：
+	 *		SOCKET_STATE state：socket所处于的某种状态
+	 * 返回值：
+	**********************************/
 	void SetState(SOCKET_STATE state) {m_state = state;}
+
 	
 	void OnRead();
 	void OnWrite();

@@ -17,6 +17,10 @@ void netlib_stop_eventloop();
 
 int netlib_bind(SOCKET fd, NETLIB_OPT opt, void* data);
 
+int netlib_add_timer(callback_t callback, void *user_data, uint64_t interval);
+
+int netlib_remove_timer(callback_t callback, void *user_data);
+
 int netlib_listen(const char* server_ip, const uint16_t server_port, callback_t callback, void* callback_data);
 
 SOCKET netlib_connect(const char* ip, uint16_t port, callback_t callback, void* callback_data);

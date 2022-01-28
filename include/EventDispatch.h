@@ -9,7 +9,12 @@ typedef int EPOLL_HANDLE;
 
 #define EPOLL_SIZE  1024
 
-
+typedef struct _TmierItem {
+	callback_t	callback;
+	void*		callback_data;
+	uint64_t	interval;
+	uint64_t	next_tick;
+}TimerItem;
 
 //是reactor的触发器，epoll相关的函数都在此调用
 //需要添加定时器，定时的向已有的fd中发送心跳包，确定fd是否存活
@@ -26,11 +31,15 @@ public:
 	void AddEvent(SOCKET fd);
 	void RemoveEvent(SOCKET fd);
 
-	//void AddTimer
+	void AddTimer(callback_t callback, void* user_data, uint64_t interval);
+	void RemoveTimer(callback_t callback, void* user_data);
 
 protected:
 	CEventDispatch();
 
+
+private:
+	void _CheckTimer();
 
 private:
 	CEventDispatch(const CEventDispatch&)=default;
@@ -40,10 +49,10 @@ private:
 private:
 	//单例模式，一个程序只有一个epoll
 	static CEventDispatch* 	m_pEventDispatch;
-
 	EPOLL_HANDLE 		m_epfd;
-
 	bool 				m_running;
+
+	list<TimerItem*>	m_timer_list;
 	
 };
 

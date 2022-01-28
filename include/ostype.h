@@ -7,6 +7,7 @@ BaiDu：
 5、单例模式
 6、ioctl如何判断socket正常读取
 7、发送消息，并对返回值进行校验，如果发送失败，需要将此socket加入到发送队列，也就是CEventDispatch循环中
+8、为什么Onwrite会有两个不同的状态，而且还要有NETLIB_MSG_CONFIRM这个请求消息
 */
 
 /*
@@ -33,6 +34,9 @@ BaiDu：
 #include <arpa/inet.h>
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
+#include <list>
+#include <sys/time.h>
+
 
 
 
@@ -54,6 +58,8 @@ enum NETLIB_MSG {
 	NETLIB_MSG_WRITE,
 	NETLIB_MSG_READ,
 	NETLIB_MSG_CLOSE,
+	NETLIB_MSG_CONFIRM,
+	NETLIB_MSG_TIMER
 };
 
 typedef void(*callback_t)(void* callback_data, NETLIB_MSG msg,  SOCKET fd);

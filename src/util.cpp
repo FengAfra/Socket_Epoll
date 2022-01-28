@@ -13,6 +13,13 @@ CRefObject::~CRefObject() {
 
 }
 
+
+/*********************************
+ * 函数：AddRef
+ * 功能：增加对象的调用次数，初始值为1
+ * 参数：
+ * 返回值：
+**********************************/
 void CRefObject::AddRef() {
 
 	if(m_threadflag) {
@@ -26,7 +33,12 @@ void CRefObject::AddRef() {
 
 }
 
-
+/*********************************
+ * 函数：RemoveRef
+ * 功能：减少对象的调用次数，若调用次数减少为0，则删除此对象
+ * 参数：
+ * 返回值：
+**********************************/
 void CRefObject::RemoveRef() {
 
 	if(m_threadflag) {
@@ -47,6 +59,17 @@ void CRefObject::RemoveRef() {
 	}
 }
 
+
+uint64_t get_tick_count() {
+
+	struct timeval tval;
+	uint64_t ret_tick;
+
+	gettimeofday(&tval, NULL);
+
+	ret_tick = tval.tv_sec * 1000L + tval.tv_usec / 1000L;
+	return ret_tick;
+}
 
 
 
