@@ -3,7 +3,7 @@
 
 
 CSLog g_demolog = CSLog(false);
-
+SocketMap CBaseSocket::g_socket_map;
 
 CBaseSocket::CBaseSocket() {
 
@@ -335,7 +335,8 @@ void CBaseSocket::_SetNonBlock(SOCKET socketfd) {
 	
 	flag = flag | O_NONBLOCK;
 	
-	if( NETLIB_ERROR == fcntl(socketfd, F_SETFL, flag)){
+	if( NETLIB_ERROR == fcntl(socketfd, F_SETFL, flag)){
+
 		sLogMessage("fcntl O_NONBLOCK failed, error = %d, socket = %d", LOGLEVEL_ERROR, errno, socketfd);
 
 	}
