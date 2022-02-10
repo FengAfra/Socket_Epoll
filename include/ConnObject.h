@@ -3,12 +3,14 @@
 
 #include "ostype.h"
 #include "util.h"
+#include "VarLenPdu.h"
+#include "netlib.h"
 
 class CConnObject;
 
 typedef unordered_map<SOCKET, CConnObject*> ConnMap_t;
 
-
+#define READ_BUF_SIZE	2048
 
 class CConnObject : public CRefObject {
 
@@ -25,10 +27,15 @@ public:
 
 	static void Conn_callback (void* callback_data, NETLIB_MSG msg,  SOCKET fd);
 	
-private:
-	SOCKET		m_handler;
+protected:
+
+	SOCKET				m_handler;
+	CValLenPdu			m_in_buffer;
+	CValLenPdu			m_out_buffer;
 
 	static ConnMap_t	s_msg_conn_map;
+	
+
 };
 
 

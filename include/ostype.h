@@ -9,6 +9,7 @@ BaiDu：
 7、发送消息，并对返回值进行校验，如果发送失败，需要将此socket加入到发送队列，也就是CEventDispatch循环中
 8、为什么Onwrite会有两个不同的状态，而且还要有NETLIB_MSG_CONFIRM这个请求消息
 9、客户端连接服务端的时候，什么时候才会触发CTestConnObj的OnNewCBFun函数
+10、UtilPdu里边的CSimpleBuffer类为什么会有前边的编译属性。__declspec(dllexport)和__declspec(dllimport)的区别
 */
 
 /*
@@ -17,6 +18,7 @@ BaiDu：
 	1.1、第一个为Basesocket的，存放<socket, CBaseSocket*>，通过fd来关联CBaseSocket类对象
 	1.2、第二个为前台业务的，存放<socket, CImConn>。通过fd来关联需要处理的对象
 		1.2.1、感觉有替代的方法，使用函数绑定，将函数和相关的commondid绑定即可。待定
+2、ValLenPdbu类中的Extend的扩展数组的方法是内核方法。可以有效扩展，不需要重新申请，然后复制
 */
 
 #ifndef _OSTYPE_H_

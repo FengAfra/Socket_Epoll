@@ -5,7 +5,6 @@
 #include "netlib.h"
 
 class CTestConnObj : public CConnObject {
-
 public:
 	CTestConnObj();
 	virtual ~CTestConnObj();

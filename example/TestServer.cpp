@@ -5,10 +5,10 @@
 void listen_accept_new_client(void* callback_data, NETLIB_MSG msg,  SOCKET fd) {
 	if(msg == NETLIB_MSG_CONNECT) {
 		CTestConnObj* pTestConnobj = new CTestConnObj();
-		CTestConnObj->OnNewCBFun(fd);
+		pTestConnobj->OnNewCBFun(fd);
 	}
 	else {
-		sLogMessage("!!!error msg: %d ", LOGLEVEL_ERROR, msg)
+		sLogMessage("!!!error msg: %d ", LOGLEVEL_ERROR, msg);
 	}
 }
 
