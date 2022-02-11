@@ -82,8 +82,14 @@ void CConnObject::OnRead() {
 
 		m_in_buffer.IncWriteOffset(ret);
 	}
+	//将会一个一个包的处理，每次处理完一个完整的包，都会将处理过后的包数据从m_in_buffer中删除
+	CMsgPduBase* pMsgPdu = NULL;
+	{
+		//读取一个完整的包
+		while((pMsgPdu = CMsgPduBase::ReadPdu(m_in_buffer.GetBuffer(), m_in_buffer.GetWriteOffset() ))) {
 
-//	CValLenPdu* Pdu
+		}
+	}
 	
 }
 

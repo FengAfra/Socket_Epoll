@@ -5,6 +5,7 @@
 #include "util.h"
 #include "VarLenPdu.h"
 #include "netlib.h"
+#include "MsgPduBase.h"
 
 class CConnObject;
 

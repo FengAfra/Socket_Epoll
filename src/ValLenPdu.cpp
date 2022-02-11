@@ -22,3 +22,47 @@ void CValLenPdu::Extend(uint32_t len) {
 
 
 
+
+
+/***************************************************************************************/
+
+CByteStream::CByteStream() {
+
+}
+
+CByteStream::~CByteStream() {
+
+}
+
+int16_t CByteStream::ReadInt16(uchar_t * buf) {
+	int16_t data;
+	//= (buf[0] << 8) | buf[1];
+	return data;
+}
+
+
+uint16_t CByteStream::ReadUInt16(uchar_t * buf) {
+	uint16_t data;
+	//= (buf[0] << 8) | buf[1];
+	return data;
+}
+
+int32_t CByteStream::ReadInt32(uchar_t * buf) {
+	int32_t data;
+	//= (buf[0] << 8) | buf[1];
+	return data;
+}
+
+
+uint32_t CByteStream::ReadUInt32(uchar_t * buf) {
+	uint32_t data;
+	//= (buf[0] << 8) | buf[1];
+	return data;
+}
+
+
+
+
+
+
+

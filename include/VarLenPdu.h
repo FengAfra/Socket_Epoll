@@ -28,5 +28,20 @@ private:
 	uint32_t			m_write_offset;
 };
 
+class CByteStream {
+public:
+	CByteStream();
+	~CByteStream();
+
+	static int16_t ReadInt16(uchar_t* buf);
+	static uint16_t ReadUInt16(uchar_t* buf);
+	static int32_t ReadInt32(uchar_t* buf);
+	static uint32_t ReadUInt32(uchar_t* buf);
+	
+private:
+};
+
+
+
 #endif
 

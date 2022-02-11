@@ -10,6 +10,7 @@ BaiDu：
 8、为什么Onwrite会有两个不同的状态，而且还要有NETLIB_MSG_CONFIRM这个请求消息
 9、客户端连接服务端的时候，什么时候才会触发CTestConnObj的OnNewCBFun函数
 10、UtilPdu里边的CSimpleBuffer类为什么会有前边的编译属性。__declspec(dllexport)和__declspec(dllimport)的区别
+11、对包头中的length字段等于0的情况暂且不处理
 */
 
 /*
