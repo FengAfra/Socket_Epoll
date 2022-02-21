@@ -29,7 +29,7 @@ void CTestConnObj::HandlePdu(CMsgPduBase* pMsgPdu) {
 	/*
 	1、根据传输过来的类对象pMsgPdu来进行处理，pMsgPdu对象存放了所有的接收数据，包括commondid等消息
 	*/
-
+/*
 	switch(pMsgPdu->GetCommandId()) {
 	case 0:
 		break;
@@ -40,6 +40,8 @@ void CTestConnObj::HandlePdu(CMsgPduBase* pMsgPdu) {
 		_HandlePduTestFun(pMsgPdu);
 		break;
 	}
+*/
+		_HandlePduTestFun(pMsgPdu);
 }
 
 

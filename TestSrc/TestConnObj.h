@@ -12,6 +12,8 @@ public:
 	virtual void OnNewCBFun(SOCKET fd);
 	virtual void HandlePdu(CMsgPduBase* pMsgPdu);
 
+	void SetHandler(SOCKET handler) {m_handler = handler;}
+
 private:
 	void _HandlePduTestFun(CMsgPduBase* pMsgPdu);
 private:

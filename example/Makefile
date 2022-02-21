@@ -1,9 +1,9 @@
 CC      := g++ -std=c++11
-CFLAGS  :=-Wall -O2
+CFLAGS  :=-Wall -O2 -g
 
 TARGET_SERVER  := TestServer
 TARGET_CLIENT  := TestClient
-CLIBS   := -lNetLib -lCSLog -llog4cplus
+CLIBS   := -lNetLib -lCSLog -llog4cplus -lpthread
 INCLUDES:=-I ../include/
 SRCS    :=$(wildcard *.cpp)
 OBJS    :=$(patsubst %cpp, %o, $(SRCS))
@@ -21,4 +21,4 @@ $(TARGET_CLIENT): TestClient.o TestConnObj.o
 
 
 clean:
-	rm -rf *.o $(TARGET_CLIENT) $(TARGET_SERVER) $(OBJS)
+	rm -rf *.o $(TARGET_CLIENT) $(TARGET_SERVER) $(OBJS) *.log
