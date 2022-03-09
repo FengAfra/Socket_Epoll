@@ -38,7 +38,7 @@ protected:
 	SOCKET				m_handler;
 	CValLenPdu			m_in_buffer;
 	CValLenPdu			m_out_buffer;
-
+	bool				m_busy;
 
 };
 

@@ -21,9 +21,10 @@ CBaseSocket::~CBaseSocket() {
  * 返回值：
 **********************************/
 void CBaseSocket::OnRead() {
-	sLogMessage("OnRead begin ", LOGLEVEL_DEBUG );
+	sLogMessage("CBaseSocket::OnRead BEGIN", LOGLEVEL_DEBUG);
 	if( m_state == SOCKET_STATE_LISTENING) {
 		//如果状态机是SOCKET_STATE_LISTENING，说明响应的是监听socket，此时是接收新连接
+		_AcceptNewSocket();
 	}
 	else {
 		//如果状态机不是SOCKET_STATE_LISTENING，说明响应的是连接socket，是客户端数据到达
@@ -36,7 +37,7 @@ void CBaseSocket::OnRead() {
 			m_callback(m_callback_data, NETLIB_MSG_READ, m_socket);
 		}
 	}
-	sLogMessage("OnRead end ", LOGLEVEL_DEBUG );
+	sLogMessage("CBaseSocket::OnRead END", LOGLEVEL_DEBUG);
 }
 
 
@@ -47,9 +48,10 @@ void CBaseSocket::OnRead() {
  * 返回值：
 **********************************/
 void CBaseSocket::OnWrite() {
-	sLogMessage("OnWrite begin ", LOGLEVEL_DEBUG );
-	CEventDispatch::GetInstance().RemoveEvent(m_socket);
+	sLogMessage("CBaseSocket::OnWrite BEGIN", LOGLEVEL_DEBUG);
 
+	CEventDispatch::GetInstance().RemoveEvent(m_socket);
+	
 	if( m_state == SOCKET_STATE_CONNECTING) {
 		int error = 0;
 		socklen_t len = sizeof(error);
@@ -65,7 +67,7 @@ void CBaseSocket::OnWrite() {
 	else {
 		m_callback(m_callback_data, NETLIB_MSG_WRITE, m_socket);
 	}
-	sLogMessage("OnWrite end ", LOGLEVEL_DEBUG );
+	sLogMessage("CBaseSocket::OnWrite END", LOGLEVEL_DEBUG);
 }
 
 /*********************************
@@ -94,7 +96,8 @@ void CBaseSocket::OnClose() {
  *		失败：-1
 **********************************/
 int CBaseSocket::Listen(const char* server_ip, const uint16_t server_port, callback_t callback, void* callback_data) {
-	sLogMessage("Listen begin ", LOGLEVEL_DEBUG );
+	
+	sLogMessage("CBaseSocket::Listen BEGIN", LOGLEVEL_DEBUG);
 	m_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if(!m_socket)
 		return NETLIB_ERROR;
@@ -140,7 +143,7 @@ int CBaseSocket::Listen(const char* server_ip, const uint16_t server_port, callb
 	*/
 	AddBaseSocket(this);
 	CEventDispatch::GetInstance().AddEvent(m_socket);
-	sLogMessage("Listen end ", LOGLEVEL_DEBUG );
+	sLogMessage("CBaseSocket::Listen END", LOGLEVEL_DEBUG);
 	return NETLIB_OK;
 	
 }
@@ -158,7 +161,7 @@ int CBaseSocket::Listen(const char* server_ip, const uint16_t server_port, callb
  *		失败：-1
 **********************************/
 SOCKET CBaseSocket::Connect(const char * remote_ip, const uint16_t remote_port, callback_t callback, void * callback_data) {
-	sLogMessage("Connect begin ", LOGLEVEL_DEBUG );
+
 	m_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if(!m_socket)
 		return NETLIB_ERROR;
@@ -187,7 +190,7 @@ SOCKET CBaseSocket::Connect(const char * remote_ip, const uint16_t remote_port, 
 	//socket状态机，其中请求连接socket当前处于此状态，就是SOCKET_STATE_CONNECTING
 	m_state = SOCKET_STATE_CONNECTING;
 		
-	sLogMessage("CBaseSocket::Listen on ip = %s, port = %u, socket = %d", LOGLEVEL_INFO, remote_ip, remote_port, m_socket);
+	sLogMessage("CBaseSocket::Connect on ip = %s, port = %u, socket = %d", LOGLEVEL_INFO, remote_ip, remote_port, m_socket);
 
 	/*
 	1、将当前fd添加到unorder_map结构体中，使eventdispatch通过fd找到相关的CBaseSocket对象。
@@ -195,7 +198,7 @@ SOCKET CBaseSocket::Connect(const char * remote_ip, const uint16_t remote_port, 
 	*/
 	AddBaseSocket(this);
 	CEventDispatch::GetInstance().AddEvent(m_socket);
-	sLogMessage("Connect end ", LOGLEVEL_DEBUG );
+	
 	return m_socket;
 }
 
@@ -210,7 +213,21 @@ SOCKET CBaseSocket::Connect(const char * remote_ip, const uint16_t remote_port, 
  *		失败：0
 **********************************/
 int CBaseSocket::Recv(void * buf, int len) {
-	return recv(m_socket, buf, len, 0);
+	char buff[len];
+	memset(buff, 0 , len);
+	int ret = recv(m_socket, buff, len, 0);
+	if(ret < 0) {
+        if(errno == EAGAIN || errno == EWOULDBLOCK) {
+            return 0;
+        }
+    }
+    else if (ret == 0) {
+        printf("disconnect %d\n", m_socket);
+    }
+    else {
+        printf("Recv: %s, %d Bytes\n", buff, ret);
+    }
+	return ret;
 }
 
 /*********************************
@@ -289,7 +306,7 @@ void CBaseSocket::_SetAddr(const char * ip, const uint16_t port, struct sockaddr
 	addr.sin_addr.s_addr = inet_addr(ip);
 	
 	//如果IP是域名的话，需要通过gethostbyname来将域名与IP对应上，实现绑定
-	if(addr.sin_addr.s_addr == INADDR_ANY) {
+	if(addr.sin_addr.s_addr == INADDR_NONE) {
 
 		struct hostent *host = gethostbyname(ip);
 		if(host == NULL) {
@@ -299,8 +316,6 @@ void CBaseSocket::_SetAddr(const char * ip, const uint16_t port, struct sockaddr
 
 		addr.sin_addr.s_addr = *(uint32_t*)host->h_addr;
 	}
-	
-
 }
 
 /*********************************
@@ -351,18 +366,19 @@ void CBaseSocket::_SetNonBlock(SOCKET socketfd) {
  * 返回值：
 **********************************/
 void CBaseSocket::_AcceptNewSocket() {
+	sLogMessage("CBaseSocket::_AcceptNewSocket BEGIN", LOGLEVEL_DEBUG);
 
-	struct sockaddr_in clientaddr;
+	/*struct sockaddr_in clientaddr;
 	memset(&clientaddr, 0, sizeof(clientaddr));
 	socklen_t client_len = sizeof(clientaddr);
 	SOCKET client_fd = 0;
-	char ip_str[64] = {0};
+	char ip_str[64] = {0};*/
 	/*
 	BaiDu
 	1、这里为什么不用if，要用while，一直循环
 	*/
-	while ( (client_fd = accept(m_socket, (struct sockaddr *)& clientaddr, &client_len)) != BASESOCKET_ERROR ) {
-		CBaseSocket *client_Socket = new CBaseSocket();
+	/*while ( (client_fd = accept(m_socket, (struct sockaddr *)& clientaddr, &client_len)) != BASESOCKET_ERROR ) {
+		//CBaseSocket *client_Socket = new CBaseSocket();
 
 		uint32_t ip = ntohl(clientaddr.sin_addr.s_addr);
 		uint16_t port = ntohs(clientaddr.sin_port);
@@ -371,8 +387,8 @@ void CBaseSocket::_AcceptNewSocket() {
 		snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d", ip >> 24, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
 
 		
-		sLogMessage("AcceptNewSocket, socket=%d from %s:%d\n", LOGLEVEL_INFO, client_fd, ip_str, port);
-
+		sLogMessage("AcceptNewSocket, socket=%d from %s:%d\n", LOGLEVEL_INFO, client_fd, ip_str, port);*/
+/*
 		//设置正在连接的客户端socket的一系列属性
 		client_Socket->SetSocket(client_fd);
 		client_Socket->SetRemoteAddr(ip_str);
@@ -385,22 +401,78 @@ void CBaseSocket::_AcceptNewSocket() {
 		//设置socket的属性
 		_SetReuseAddr(client_fd);
 		_SetNonBlock(client_fd);
-
+*/
 		/*
 		1、将连接的client_fd添加到unorder_map结构体中，使eventdispatch通过fd找到相关的CBaseSocket对象。
 		2、将连接的client_fd添加到CEventDispatch的epoll中，可以监听到fd。
 		*/
-		AddBaseSocket(client_Socket);
-		CEventDispatch::GetInstance().AddEvent(client_fd);
+		//AddBaseSocket(client_Socket);
+		//CEventDispatch::GetInstance().AddEvent(client_fd);
+		/*struct epoll_event ev;
+		ev.data.fd = client_fd;
+		ev.events = EPOLLIN | EPOLLOUT | EPOLLET;// | EPOLLPRI | EPOLLERR | EPOLLHUP;
 
+		if (epoll_ctl(CEventDispatch::GetInstance().m_epfd, EPOLL_CTL_ADD, client_fd, &ev)) {
+			perror("epoll_ctl");
+			return;
+		}*/
 		/*
 		BaiDu：
 		1、连接到新的客户端client之后，需要重新绑定新的回调函数，并设置NETLIB的状态机，当前处于connected状态
 		*/
-		m_callback( m_callback_data , NETLIB_MSG_CONNECT, client_fd);
+		//m_callback( m_callback_data , NETLIB_MSG_CONNECT, client_fd);
 
+	//}
+
+
+	struct sockaddr_in clientaddr;
+    memset(&clientaddr, 0, sizeof(clientaddr));
+    socklen_t client_len = sizeof(clientaddr);
+	SOCKET client_fd = 0;
+	char ip_str[64] = {0};
+	while ( (client_fd = accept(m_socket, (struct sockaddr *)& clientaddr, &client_len)) != BASESOCKET_ERROR ) {
+    //while (client_fd = accept(m_socket, (struct sockaddr*)&clientaddr, &client_len);
+    if(client_fd <= 0)
+        return ;
+
+	CBaseSocket *client_Socket = new CBaseSocket();
+
+	uint32_t ip = ntohl(clientaddr.sin_addr.s_addr);
+	uint16_t port = ntohs(clientaddr.sin_port);
+
+	//点分十进制法，将IP地址输出
+	snprintf(ip_str, sizeof(ip_str), "%d.%d.%d.%d", ip >> 24, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
+
+	
+	sLogMessage("AcceptNewSocket, socket=%d from %s:%d\n", LOGLEVEL_INFO, client_fd, ip_str, port);
+    
+	//设置正在连接的客户端socket的一系列属性
+	client_Socket->SetSocket(client_fd);
+	client_Socket->SetRemoteAddr(ip_str);
+	client_Socket->SetRemotePort(port);
+	client_Socket->SetCallback(m_callback);
+	client_Socket->SetCallbackData(m_callback_data);
+	client_Socket->SetState(SOCKET_STATE_CONNECTED);
+
+	//设置socket的属性
+	_SetReuseAddr(client_fd);
+	_SetNonBlock(client_fd);
+
+    //将连接的client_fd添加到epoll中，并设置为read触发以及边缘触发
+	AddBaseSocket(client_Socket);
+    //CEventDispatch::GetInstance().AddEvent(client_fd);
+    struct epoll_event ev;
+    ev.data.fd = client_fd;
+    ev.events = EPOLLIN | EPOLLET | EPOLLET | EPOLLPRI | EPOLLERR | EPOLLHUP;
+
+    if (epoll_ctl(CEventDispatch::GetInstance().m_epfd, EPOLL_CTL_ADD, client_fd, &ev)) {
+        perror("epoll_ctl");
+        return ;
+    }
+
+	m_callback( m_callback_data , NETLIB_MSG_CONNECT, client_fd);
 	}
-
+	sLogMessage("CBaseSocket::_AcceptNewSocket END", LOGLEVEL_DEBUG);
 }
 
 /***************************static 静态函数，主要负责对静态数据unorder_map结构体的处理**********************************/
@@ -436,7 +508,7 @@ void CBaseSocket::RemoveBaseSocket(CBaseSocket* pSocket) {
  * 返回值：
 **********************************/
 CBaseSocket* CBaseSocket::FindBaseSocket(SOCKET fd) {
-	sLogMessage("FindBaseSocket begin ", LOGLEVEL_DEBUG );
+	sLogMessage("CBaseSocket::FindBaseSocket BEGIN", LOGLEVEL_DEBUG);
 	CBaseSocket* pSocket = NULL;
 
 	auto iter = g_socket_map.find(fd);
@@ -444,7 +516,7 @@ CBaseSocket* CBaseSocket::FindBaseSocket(SOCKET fd) {
 		pSocket = iter->second;
 		pSocket->AddRef();
 	}
-	sLogMessage("FindBaseSocket end ", LOGLEVEL_DEBUG );
+	sLogMessage("CBaseSocket::FindBaseSocket END", LOGLEVEL_DEBUG);
 	return pSocket;
 }
 

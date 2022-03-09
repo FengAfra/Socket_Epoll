@@ -1,5 +1,5 @@
 CC      := g++ -std=c++11
-CFLAGS  :=-Wall -O2 -g
+CFLAGS  :=-Wall -O0 -g
 
 TARGET_SERVER  := TestServer
 TARGET_CLIENT  := TestClient

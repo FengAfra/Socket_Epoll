@@ -3,7 +3,7 @@
 
 ConnMap_t CConnObject::s_msg_conn_map;
 CConnObject::CConnObject(){
-
+	m_busy = false;
 }
 
 CConnObject::~CConnObject() {
@@ -12,7 +12,8 @@ CConnObject::~CConnObject() {
 }
 
 void CConnObject::Conn_callback(void * callback_data, NETLIB_MSG msg, SOCKET fd) {
-	sLogMessage("Conn_callback begin ", LOGLEVEL_DEBUG );
+	
+	sLogMessage("CConnObject::Conn_callback BEGIN", LOGLEVEL_DEBUG);
 	CConnObject* pConnobj = NULL;
 	auto iter = s_msg_conn_map.find(fd);
 	if(iter !=  s_msg_conn_map.end()) {
@@ -27,6 +28,7 @@ void CConnObject::Conn_callback(void * callback_data, NETLIB_MSG msg, SOCKET fd)
 		pConnobj->OnClose();
 		break;
 	case NETLIB_MSG_READ:
+
 		pConnobj->OnRead();
 		break;
 	case NETLIB_MSG_WRITE:
@@ -42,7 +44,7 @@ void CConnObject::Conn_callback(void * callback_data, NETLIB_MSG msg, SOCKET fd)
 		sLogMessage("!!!imconn_callback error msg: %d  failed", LOGLEVEL_ERROR, fd);
 		break;
 	}
-	sLogMessage("Conn_callback end ", LOGLEVEL_DEBUG );
+	sLogMessage("CConnObject::Conn_callback END", LOGLEVEL_DEBUG);
 }
 
 void CConnObject::OnClose() {
@@ -63,7 +65,7 @@ void CConnObject::OnRead() {
 	2、读取一整个包中的包头，包体，通过包体来进行相对应的处理。
 	3、CConnObject类中有两个变长数组，可以存放此socket接收的数据和将要发送的数据
 	*/
-	sLogMessage("OnRead begin ", LOGLEVEL_DEBUG );
+	sLogMessage("CConnObject::OnRead BEGIN", LOGLEVEL_DEBUG);
 	while(true) {
 		uint32_t free_buf_len = m_in_buffer.GetAllocSize() - m_in_buffer.GetWriteOffset();
 		if(free_buf_len < READ_BUF_SIZE) {
@@ -96,11 +98,18 @@ void CConnObject::OnRead() {
 		}
 
 	}
-	sLogMessage("OnRead end ", LOGLEVEL_DEBUG );
+	sLogMessage("CConnObject::OnRead END", LOGLEVEL_DEBUG);
 }
 
 void CConnObject::OnWrite() {
-	sLogMessage("OnWrite begin ", LOGLEVEL_DEBUG );
+
+	//EPOLLOUT在EPOLLET的情况下，在写缓冲区为空的时候，会触发一次，这个时候，需要return。只有在send失败的的时候，将其置为ture
+	sLogMessage("CConnObject::OnWrite BEGIN", LOGLEVEL_DEBUG);
+	if(!m_busy) {
+		sLogMessage("CConnObject::OnWrite END", LOGLEVEL_DEBUG);
+		return;
+	}
+
 	while(m_out_buffer.GetWriteOffset() > 0) {
 		int send_size = m_out_buffer.GetWriteOffset();
 		if (send_size > NETLIB_MAX_SOCKET_BUF_SIZE) {
@@ -113,8 +122,8 @@ void CConnObject::OnWrite() {
 			break;
 		}
 		m_out_buffer.Read(NULL, ret);
-	}
-	sLogMessage("OnWrite end ", LOGLEVEL_DEBUG );
+	}	
+	sLogMessage("CConnObject::OnWrite END", LOGLEVEL_DEBUG);
 }
 
 int CConnObject::SendMsgPdu(CMsgPduBase * pMsgPdu) {
@@ -122,18 +131,35 @@ int CConnObject::SendMsgPdu(CMsgPduBase * pMsgPdu) {
 }
 
 int CConnObject::Send(void* data, int len) {
-	sLogMessage("Send begin ", LOGLEVEL_DEBUG );
-	int ret = netlib_send(m_handler,  data, len);
-	if (ret <= 0) {
-		ret = 0;
+
+	if (m_busy)
+	{
+		m_out_buffer.Write(data, len);
+		return len;
+	}
+	//会有超过PDU的数据进行传输，这个时候需要将data分段传输
+	int offset = 0;
+	int remain = len;
+	while(remain > 0) {
+		int send_size = remain;
+		if (send_size > NETLIB_MAX_SOCKET_BUF_SIZE) {
+			send_size = NETLIB_MAX_SOCKET_BUF_SIZE;
+		}
+		int ret = netlib_send(m_handler,  data, len);
+		if (ret <= 0) {
+			ret = 0;
+			break;
+		}
+		offset += ret;
+		remain -= ret;
 	}
 
-	if (ret < len)
+	if (remain > 0)
 	{
-		m_out_buffer.Write((void*)data + ret, len - ret);
+		m_out_buffer.Write((void*)data + offset, remain);
+		m_busy = true;
 		sLogMessage("not send all, remain=%d", LOGLEVEL_INFO, m_out_buffer.GetWriteOffset());
 	}
-	sLogMessage("Send end ", LOGLEVEL_DEBUG );
 	return len;
 }
 

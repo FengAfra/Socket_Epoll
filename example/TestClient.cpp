@@ -10,8 +10,8 @@ void* ThreadFun(void* arg) {
 	
 	char serverip[64];
 	memset(serverip, 0, sizeof(serverip));
-	strcpy(serverip, "127.0.0.1");
-	uint16_t serverport = 6781;
+	strcpy(serverip, "192.168.217.1");
+	uint16_t serverport = 8080;
 	
 	SOCKET handler = netlib_connect(serverip, serverport, CConnObject::Conn_callback, NULL);
 

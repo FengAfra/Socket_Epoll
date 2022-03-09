@@ -9,7 +9,7 @@
  * 返回值：
 **********************************/
 CEventDispatch::CEventDispatch() {
-
+	m_running = false;
 	m_epfd = epoll_create(1);
 
 	if( EVENTDISPATCH_ERROR == m_epfd )
@@ -136,6 +136,7 @@ void CEventDispatch::_CheckTimer() {
 **********************************/
 void CEventDispatch::StartDispatch(int wait_time) {
 
+	sLogMessage("CEventDispatch::StartDispatch BEGIN", LOGLEVEL_DEBUG);
 	struct epoll_event event[EPOLL_SIZE] = {0};
 
 	//如果已经有在跑的实例，那就需要返回，避免启动多个Dispatch
@@ -175,9 +176,9 @@ void CEventDispatch::StartDispatch(int wait_time) {
 			}	
 			pSocket->RemoveRef();
 		}
-		_CheckTimer();
+		//_CheckTimer();
 	}
-
+	sLogMessage("CEventDispatch::StartDispatch END", LOGLEVEL_DEBUG);
 }
 
 /*********************************

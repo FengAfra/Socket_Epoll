@@ -46,7 +46,8 @@ int netlib_bind(SOCKET fd, NETLIB_OPT opt, void* data) {
 	case NETLIB_OPT_SET_CALLBACK_DATA:
 		pSocket->SetCallbackData(data);
 		break;
-	default:
+	default:
+
 		sLogMessage("opt is error, socket=%d\n", LOGLEVEL_ERROR, fd);
 		return NETLIB_ERROR;
 	}
@@ -79,7 +80,7 @@ int netlib_remove_timer(callback_t callback, void *user_data) {
  *		失败：-1
 **********************************/
 int netlib_listen(const char* server_ip, const uint16_t server_port, callback_t callback, void* callback_data) {
-
+	sLogMessage("netlib_listen BEGIN", LOGLEVEL_DEBUG);
 	CBaseSocket* pSocket = new CBaseSocket();
 	if(!pSocket)
 		return NETLIB_ERROR;
@@ -89,7 +90,7 @@ int netlib_listen(const char* server_ip, const uint16_t server_port, callback_t 
 		delete pSocket;
 		return NETLIB_ERROR;
 	}
-
+	sLogMessage("netlib_listen END", LOGLEVEL_DEBUG);
 	return NETLIB_OK;
 }
 

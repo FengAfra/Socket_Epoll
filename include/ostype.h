@@ -11,6 +11,8 @@ BaiDu：
 9、客户端连接服务端的时候，什么时候才会触发CTestConnObj的OnNewCBFun函数
 10、UtilPdu里边的CSimpleBuffer类为什么会有前边的编译属性。__declspec(dllexport)和__declspec(dllimport)的区别
 11、对包头中的length字段等于0的情况暂且不处理
+12、server端问题：如果使用EventDispatch的AddEvent函数，会导致将客户端加入到epoll之后，立马触发EPOLLOUT事件
+13、server端问题：如果使用正常的m_in_buffer接收客户端传输的消息，接收不到数据
 */
 
 /*
