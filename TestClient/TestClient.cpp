@@ -10,11 +10,6 @@ void* ThreadFun(void* arg) {
 	memset(serverip, 0, sizeof(serverip));
 	strcpy(serverip, "192.168.217.1");
 	uint16_t serverport = 8080;
-	
-	SOCKET handler = netlib_connect(serverip, serverport, CConnObject::Conn_callback, NULL);
-
-	
-	
 
 	char Msg[10];
 	strcpy(Msg, "123123");
@@ -22,10 +17,13 @@ void* ThreadFun(void* arg) {
 	CMsgPduBase* pMsgPdu = new CMsgPduBase();
 	pMsgPdu->m_buf.Write(Msg, strlen(Msg)+1);
 
+
+
+	SOCKET handler = netlib_connect(serverip, serverport, CConnObject::Conn_callback, NULL);
 	pTestConnobj->SetHandler(handler);
 	CTestConnObj::s_msg_conn_map.insert(make_pair(handler, pTestConnobj));
 	sleep(5);
-	pTestConnobj->HandlePdu(pMsgPdu);
+	//pTestConnobj->HandlePdu(pMsgPdu);
 	while(true);
 }
 
@@ -37,10 +35,7 @@ int main() {
 	pthread_create(&thread_id, NULL, ThreadFun, NULL);
 	netlib_init();
 	netlib_eventloop(-1);
-	
 
-
-	
 	while(true);
 
 

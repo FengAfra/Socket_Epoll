@@ -48,15 +48,15 @@ void CConnObject::Conn_callback(void * callback_data, NETLIB_MSG msg, SOCKET fd)
 }
 
 void CConnObject::OnClose() {
-
+	sLogMessage("CConnObject::OnClose", LOGLEVEL_DEBUG);
 }
 
 void CConnObject::OnTimer() {
-
+	sLogMessage("CConnObject::OnTimer", LOGLEVEL_DEBUG);
 }
 
 void CConnObject::OnConfirm() {
-
+	sLogMessage("CConnObject::OnConfirm", LOGLEVEL_DEBUG);
 }
 
 void CConnObject::OnRead() {
@@ -131,7 +131,7 @@ int CConnObject::SendMsgPdu(CMsgPduBase * pMsgPdu) {
 }
 
 int CConnObject::Send(void* data, int len) {
-
+	sLogMessage("CConnObject::Send BEGIN", LOGLEVEL_DEBUG);
 	if (m_busy)
 	{
 		m_out_buffer.Write(data, len);
@@ -160,6 +160,7 @@ int CConnObject::Send(void* data, int len) {
 		m_busy = true;
 		sLogMessage("not send all, remain=%d", LOGLEVEL_INFO, m_out_buffer.GetWriteOffset());
 	}
+	sLogMessage("CConnObject::Send END", LOGLEVEL_DEBUG);
 	return len;
 }
 

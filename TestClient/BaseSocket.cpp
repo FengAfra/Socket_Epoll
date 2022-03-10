@@ -161,7 +161,7 @@ int CBaseSocket::Listen(const char* server_ip, const uint16_t server_port, callb
  *		失败：-1
 **********************************/
 SOCKET CBaseSocket::Connect(const char * remote_ip, const uint16_t remote_port, callback_t callback, void * callback_data) {
-
+	sLogMessage("CBaseSocket::Connect BEGIN", LOGLEVEL_DEBUG);
 	m_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if(!m_socket)
 		return NETLIB_ERROR;
@@ -178,7 +178,7 @@ SOCKET CBaseSocket::Connect(const char * remote_ip, const uint16_t remote_port, 
 	//bind函数，将sockaddr结构体与socket绑定，如果失败，释放socket
 	int ret = connect(m_socket, (const struct sockaddr*) &remote_addr, sizeof(remote_addr));
 	if(ret) {
-		sLogMessage("bind failed, ip = %s, port = %u, error = %d", LOGLEVEL_ERROR, remote_ip, remote_port, errno);
+		sLogMessage("connect failed, ip = %s, port = %u, error = %d", LOGLEVEL_ERROR, remote_ip, remote_port, errno);
 		close(m_socket);
 		return NETLIB_ERROR;
 	}
@@ -198,7 +198,7 @@ SOCKET CBaseSocket::Connect(const char * remote_ip, const uint16_t remote_port, 
 	*/
 	AddBaseSocket(this);
 	CEventDispatch::GetInstance().AddEvent(m_socket);
-	
+	sLogMessage("CBaseSocket::Connect END", LOGLEVEL_DEBUG);
 	return m_socket;
 }
 

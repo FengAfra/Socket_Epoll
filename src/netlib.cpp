@@ -107,7 +107,7 @@ int netlib_listen(const char* server_ip, const uint16_t server_port, callback_t 
  *		失败：-1
 **********************************/
 SOCKET netlib_connect(const char * ip, uint16_t port, callback_t callback, void * callback_data) {
-
+	sLogMessage("netlib_connect BEGIN", LOGLEVEL_DEBUG);
 	CBaseSocket *pSocket = new CBaseSocket();
 	if(!pSocket)
 		return NETLIB_ERROR;
@@ -116,7 +116,7 @@ SOCKET netlib_connect(const char * ip, uint16_t port, callback_t callback, void 
 	if(NETLIB_ERROR == fd) {
 		delete pSocket;
 	}
-	
+	sLogMessage("netlib_connect END", LOGLEVEL_DEBUG);
 	return fd;
 }
 
@@ -132,7 +132,7 @@ SOCKET netlib_connect(const char * ip, uint16_t port, callback_t callback, void 
  *		失败：-1
 **********************************/
 int netlib_recv(SOCKET fd, void * recvBuf, int len) {
-
+	sLogMessage("netlib_recv BEGIN", LOGLEVEL_DEBUG);
 	CBaseSocket* pSocket = CBaseSocket::FindBaseSocket(fd);
 	if(!pSocket){
 		sLogMessage("FindBaseSocket, socket=%d from map\n", LOGLEVEL_ERROR, fd);
@@ -141,6 +141,7 @@ int netlib_recv(SOCKET fd, void * recvBuf, int len) {
 
 	int ret = pSocket->Recv(recvBuf, len);
 	pSocket->RemoveRef();
+	sLogMessage("netlib_recv END", LOGLEVEL_DEBUG);
 	return ret;
 }
 
@@ -156,7 +157,7 @@ int netlib_recv(SOCKET fd, void * recvBuf, int len) {
  *		失败：-1
 **********************************/
 int netlib_send(SOCKET fd, void * sendbuf, int len) {
-
+	sLogMessage("netlib_send BEGIN", LOGLEVEL_DEBUG);
 	CBaseSocket* pSocket = CBaseSocket::FindBaseSocket(fd);
 	if(!pSocket){
 		sLogMessage("FindBaseSocket, socket=%d from map\n", LOGLEVEL_ERROR, fd);
@@ -165,6 +166,7 @@ int netlib_send(SOCKET fd, void * sendbuf, int len) {
 
 	int ret = pSocket->Send(sendbuf, len);
 	pSocket->RemoveRef();
+	sLogMessage("netlib_send END", LOGLEVEL_DEBUG);
 	return ret;
 }
 

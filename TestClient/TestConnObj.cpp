@@ -31,7 +31,7 @@ void CTestConnObj::HandlePdu(CMsgPduBase* pMsgPdu) {
 	/*
 	1、根据传输过来的类对象pMsgPdu来进行处理，pMsgPdu对象存放了所有的接收数据，包括commondid等消息
 	*/
-
+	/*
 	switch(pMsgPdu->GetCommandId()) {
 	case 0:
 		break;
@@ -41,7 +41,10 @@ void CTestConnObj::HandlePdu(CMsgPduBase* pMsgPdu) {
 		sLogMessage("wrong msg, cmd id=%d", LOGLEVEL_INFO, pMsgPdu->GetCommandId());
 		_HandlePduTestFun(pMsgPdu);
 		break;
-	}
+	}*/
+	//测试使用，全部消息传输
+	sLogMessage("wrong msg, cmd id=%d", LOGLEVEL_INFO, pMsgPdu->GetCommandId());
+	_HandlePduTestFun(pMsgPdu);
 }
 
 
