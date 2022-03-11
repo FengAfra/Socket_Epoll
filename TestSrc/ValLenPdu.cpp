@@ -4,9 +4,14 @@
 CValLenPdu::CValLenPdu() {
 
 	m_buffer = NULL;
+	m_alloc_size = 0;
+	m_write_offset = 0;
 }
 
 CValLenPdu::~CValLenPdu() {
+	m_alloc_size = 0;
+	m_write_offset = 0;
+
 	if(m_buffer){
 		free(m_buffer);
 		m_buffer = NULL;
