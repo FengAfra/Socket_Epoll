@@ -4,9 +4,14 @@
 CValLenPdu::CValLenPdu() {
 
 	m_buffer = NULL;
+	m_alloc_size = 0;
+	m_write_offset = 0;
 }
 
 CValLenPdu::~CValLenPdu() {
+	m_alloc_size = 0;
+	m_write_offset = 0;
+
 	if(m_buffer){
 		free(m_buffer);
 		m_buffer = NULL;
@@ -62,27 +67,27 @@ CByteStream::~CByteStream() {
 }
 
 int16_t CByteStream::ReadInt16(uchar_t * buf) {
-	int16_t data;
+	int16_t data = 0;
 	//= (buf[0] << 8) | buf[1];
 	return data;
 }
 
 
 uint16_t CByteStream::ReadUInt16(uchar_t * buf) {
-	uint16_t data;
+	uint16_t data = 0;
 	//= (buf[0] << 8) | buf[1];
 	return data;
 }
 
 int32_t CByteStream::ReadInt32(uchar_t * buf) {
-	int32_t data;
+	uint32_t data = 0;
 	//= (buf[0] << 8) | buf[1];
 	return data;
 }
 
 
 uint32_t CByteStream::ReadUInt32(uchar_t * buf) {
-	uint32_t data;
+	uint32_t data = 0;
 	//= (buf[0] << 8) | buf[1];
 	return data;
 }

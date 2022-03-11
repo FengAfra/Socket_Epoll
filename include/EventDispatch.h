@@ -33,7 +33,6 @@ public:
 
 	void AddTimer(callback_t callback, void* user_data, uint64_t interval);
 	void RemoveTimer(callback_t callback, void* user_data);
-	EPOLL_HANDLE 		m_epfd;
 protected:
 	CEventDispatch();
 
@@ -49,7 +48,7 @@ private:
 private:
 	//单例模式，一个程序只有一个epoll
 	//static CEventDispatch* 	m_pEventDispatch;
-	//EPOLL_HANDLE 		m_epfd;
+	EPOLL_HANDLE 		m_epfd;
 	bool 				m_running;
 
 	list<TimerItem*>	m_timer_list;

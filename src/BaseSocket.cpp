@@ -50,7 +50,7 @@ void CBaseSocket::OnRead() {
 void CBaseSocket::OnWrite() {
 	sLogMessage("CBaseSocket::OnWrite BEGIN", LOGLEVEL_DEBUG);
 
-	CEventDispatch::GetInstance().RemoveEvent(m_socket);
+	//CEventDispatch::GetInstance().RemoveEvent(m_socket);
 	
 	if( m_state == SOCKET_STATE_CONNECTING) {
 		int error = 0;
@@ -213,7 +213,7 @@ SOCKET CBaseSocket::Connect(const char * remote_ip, const uint16_t remote_port, 
  *		失败：0
 **********************************/
 int CBaseSocket::Recv(void * buf, int len) {
-	char buff[len];
+	/*char buff[len];
 	memset(buff, 0 , len);
 	int ret = recv(m_socket, buff, len, 0);
 	if(ret < 0) {
@@ -227,6 +227,8 @@ int CBaseSocket::Recv(void * buf, int len) {
     else {
         printf("Recv: %s, %d Bytes\n", buff, ret);
     }
+	return ret;*/
+	int ret = recv(m_socket, buf, len, 0);
 	return ret;
 }
 
@@ -255,7 +257,7 @@ int CBaseSocket::Send(void * buf, int len) {
 	if(ret < 0){
 		if(errno == EAGAIN || errno == EWOULDBLOCK) {
 			sLogMessage("send failed, errno in EAGAIN,EWOULDBLOCK, socket = %d, buf = '%s'", LOGLEVEL_INFO, m_socket, buf);
-			CEventDispatch::GetInstance().AddEvent(m_socket);
+			//CEventDispatch::GetInstance().AddEvent(m_socket);
 			ret = 0;
 		}
 		else {
@@ -460,8 +462,8 @@ void CBaseSocket::_AcceptNewSocket() {
 
     //将连接的client_fd添加到epoll中，并设置为read触发以及边缘触发
 	AddBaseSocket(client_Socket);
-    //CEventDispatch::GetInstance().AddEvent(client_fd);
-    struct epoll_event ev;
+    CEventDispatch::GetInstance().AddEvent(client_fd);
+    /*struct epoll_event ev;
     ev.data.fd = client_fd;
     ev.events = EPOLLIN | EPOLLET | EPOLLET | EPOLLPRI | EPOLLERR | EPOLLHUP;
 
@@ -469,7 +471,7 @@ void CBaseSocket::_AcceptNewSocket() {
         perror("epoll_ctl");
         return ;
     }
-
+	*/
 	m_callback( m_callback_data , NETLIB_MSG_CONNECT, client_fd);
 	}
 	sLogMessage("CBaseSocket::_AcceptNewSocket END", LOGLEVEL_DEBUG);

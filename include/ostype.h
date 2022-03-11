@@ -13,6 +13,7 @@ BaiDu：
 11、对包头中的length字段等于0的情况暂且不处理
 12、server端问题：如果使用EventDispatch的AddEvent函数，会导致将客户端加入到epoll之后，立马触发EPOLLOUT事件
 13、server端问题：如果使用正常的m_in_buffer接收客户端传输的消息，接收不到数据
+14、CSLOG问题，如果使用CSLOG打印日志，会有一部分内存是越界的，导致程序有别的数据输出
 */
 
 /*

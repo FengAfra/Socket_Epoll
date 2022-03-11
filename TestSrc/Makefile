@@ -3,6 +3,7 @@ CFLAGS  :=-Wall -O0
 
 TARGET_CLIENT  := TestServer
 CLIBS   :=  -lCSLog -llog4cplus -lpthread
+#CLIBS   :=  -lpthread
 INCLUDES:=-I ../include/
 SRCS    :=$(wildcard *.cpp)
 OBJS    :=$(patsubst %cpp, %o, $(SRCS))

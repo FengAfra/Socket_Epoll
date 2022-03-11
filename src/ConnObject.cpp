@@ -122,7 +122,11 @@ void CConnObject::OnWrite() {
 			break;
 		}
 		m_out_buffer.Read(NULL, ret);
-	}	
+	}
+	
+	if (m_out_buffer.GetWriteOffset() == 0) {
+		m_busy = false;
+	}
 	sLogMessage("CConnObject::OnWrite END", LOGLEVEL_DEBUG);
 }
 
@@ -145,7 +149,7 @@ int CConnObject::Send(void* data, int len) {
 		if (send_size > NETLIB_MAX_SOCKET_BUF_SIZE) {
 			send_size = NETLIB_MAX_SOCKET_BUF_SIZE;
 		}
-		int ret = netlib_send(m_handler,  data, len);
+		int ret = netlib_send(m_handler,  (char*)data + offset, send_size);
 		if (ret <= 0) {
 			ret = 0;
 			break;
@@ -156,7 +160,7 @@ int CConnObject::Send(void* data, int len) {
 
 	if (remain > 0)
 	{
-		m_out_buffer.Write((void*)data + offset, remain);
+		m_out_buffer.Write((char*)data + offset, remain);
 		m_busy = true;
 		sLogMessage("not send all, remain=%d", LOGLEVEL_INFO, m_out_buffer.GetWriteOffset());
 	}

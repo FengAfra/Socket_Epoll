@@ -19,6 +19,8 @@ CMsgPduBase* CMsgPduBase::ReadPdu(uchar_t * buf, uint32_t len) {
 	//uint16_t command_id = CByteStream::ReadUint16(buf + 10);
 
 	//测试用 begin
+	if(len <= 0)
+		return NULL;
 	uint32_t pdu_len = len;
 	//测试用 end
 	
