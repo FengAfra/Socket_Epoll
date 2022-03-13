@@ -7,12 +7,12 @@ CLIBS   := -lNetLib -lCSLog -llog4cplus -lpthread
 INCLUDES:=-I ../include/
 SRCS    :=$(wildcard *.cpp)
 OBJS    :=$(patsubst %cpp, %o, $(SRCS))
-all     : $(TARGET_SERVER) $(TARGET_CLIENT)
+#all     : $(TARGET_SERVER) $(TARGET_CLIENT)
 $(TARGET_SERVER): TestServer.o TestConnObj.o
 	$(CC) $(CFLAGS) TestServer.o TestConnObj.o -o $@ $(CLIBS)
 
-$(TARGET_CLIENT): TestClient.o TestConnObj.o
-	$(CC) $(CFLAGS) TestClient.o TestConnObj.o -o $@ $(CLIBS)
+#$(TARGET_CLIENT): TestClient.o TestConnObj.o
+#	$(CC) $(CFLAGS) TestClient.o TestConnObj.o -o $@ $(CLIBS)
 
 %.o:%.cpp
 	$(CC) -c $(INCLUDES) $(CFLAGS) $^

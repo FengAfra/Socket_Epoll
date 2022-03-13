@@ -28,7 +28,7 @@ void CTestConnObj::OnNewCBFun(SOCKET fd) {
 
 void CTestConnObj::HandlePdu(CMsgPduBase* pMsgPdu) {
 
-	/*
+/*
 	1、根据传输过来的类对象pMsgPdu来进行处理，pMsgPdu对象存放了所有的接收数据，包括commondid等消息
 	*/
 	/*
