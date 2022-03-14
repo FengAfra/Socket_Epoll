@@ -20,8 +20,8 @@ int main() {
 
 	char serverip[64];
 	memset(serverip, 0, sizeof(serverip));
-	//strcpy(serverip, "192.168.217.141");
-	strcpy(serverip, "192.168.234.130");
+	strcpy(serverip, "192.168.217.141");
+	//strcpy(serverip, "192.168.234.130");
 	uint16_t serverport = 6781;
 	
 	netlib_listen(serverip, serverport, listen_accept_new_client, NULL);

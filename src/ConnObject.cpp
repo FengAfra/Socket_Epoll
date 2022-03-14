@@ -89,8 +89,8 @@ void CConnObject::OnRead() {
 			sLogMessage("handle = %u, pdu_len into = %u\n",LOGLEVEL_INFO, m_handler, pdu_len);
 
 			HandlePdu(pMsgPdu);
-			printf("handle = %u, recvMsg=[%s]\n", m_handler, pMsgPdu->GetBuffer());
-			sLogMessage("handle = %u, recvMsg=[%s]\n", LOGLEVEL_INFO, m_handler, pMsgPdu->GetBuffer());
+			printf("handle = %u, recvMsg=[%.*s]\n", m_handler, pdu_len, pMsgPdu->GetBuffer());
+			sLogMessage("handle = %u, recvMsg=[%.*s]\n", LOGLEVEL_INFO, m_handler, pdu_len, pMsgPdu->GetBuffer());
 				
 			m_in_buffer.Read(NULL, pdu_len);	//将包的数据出队列
 			delete pMsgPdu;

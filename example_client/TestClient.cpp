@@ -8,7 +8,7 @@ void* ThreadFun(void* arg) {
 
 	char serverip[64];
 	memset(serverip, 0, sizeof(serverip));
-	strcpy(serverip, "192.168.234.130");
+	strcpy(serverip, "192.168.217.141");
 	uint16_t serverport = 6781;
 
 	char Msg[30];
